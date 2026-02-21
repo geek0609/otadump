@@ -1,5 +1,5 @@
 use anyhow::Result;
-use clap::Parser;
+use clap::{ArgAction, Parser};
 use indicatif::{ProgressBar, ProgressStyle};
 use otadump::{ExtractOptions, ProgressReporter};
 
@@ -37,8 +37,30 @@ pub struct Args {
     pub payload_file: String,
 
     /// Path to the output directory
-    #[clap(long)]
+    #[clap(short = 'o', long, default_value = ".")]
     pub output_dir: String,
+
+    /// Extract only specific partitions (repeat flag or use comma-separated list)
+    #[clap(
+        short = 'p',
+        long = "partition",
+        value_name = "NAME",
+        action = ArgAction::Append,
+        value_delimiter = ','
+    )]
+    pub partitions: Vec<String>,
+
+    /// Number of worker threads to use
+    #[clap(short = 'c', long)]
+    pub num_threads: Option<usize>,
+
+    /// Overwrite existing partition images
+    #[clap(long)]
+    pub overwrite: bool,
+
+    /// Skip input/output verification
+    #[clap(long = "no-verify")]
+    pub no_verify: bool,
 }
 
 pub fn extract() {
@@ -47,9 +69,19 @@ pub fn extract() {
     let reporter = Box::new(CliProgressReporter::new());
     let reporter = reporter.as_ref();
 
-    let result = ExtractOptions::new()
-        .progress_reporter(reporter)
-        .extract(&args.payload_file, &args.output_dir);
+    let mut options = ExtractOptions::new();
+    options.progress_reporter(reporter);
+    options.overwrite(args.overwrite);
+    options.verify(!args.no_verify);
+
+    if let Some(num_threads) = args.num_threads {
+        options.num_threads(num_threads);
+    }
+    if !args.partitions.is_empty() {
+        options.partitions(&args.partitions);
+    }
+
+    let result = options.extract(&args.payload_file, &args.output_dir);
     reporter.progress_bar.finish_and_clear();
     match result {
         Ok(()) => {

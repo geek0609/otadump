@@ -25,7 +25,7 @@ clap = { version = "4.2.1", features = ["derive"] }
 color-print = "0.3.4"
 hex = "0.4.3"
 indicatif = "0.17.3"
-liblzma = { version = "0.4.2", features = ["fat-lto", "static"] }
+liblzma = { version = "0.4.2", features = ["static"] }
 memmap2 = "0.9.5"
 nom = "7.1.1"
 nom-derive = "0.10.1"
@@ -35,7 +35,7 @@ ring = { version = "0.17.11", features = ["std"] }
 sync-unsafe-cell = "0.1.0"
 tempfile = "3.6.0"
 zip = { version = "4.1.0", default-features = false }
-zstd = { version = "0.13.2", features = ["fat-lto"] }
+zstd = "0.13.2"
 
 [profile.release]
 codegen-units = 1
